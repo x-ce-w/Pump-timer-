@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -264,8 +265,15 @@
 </head>
 <body>
 
+
+<div class="summary visible" id="landingScreen">
+  <h2>Select mode</h2>
+  <button class="btn-again" onclick="startMode('endless')" style="margin-bottom:16px;">Endless</button>
+  <button class="btn-again" onclick="startMode('sixminute')">6 Minutes</button>
+</div>
+
 <!-- ── Timer screen ── -->
-<div class="app" id="appScreen">
+<div class="app" id="appScreen" style="display:none;">
   <div class="phase-label" id="phaseLabel">Ready</div>
 
   <div class="timer-ring">
@@ -306,7 +314,7 @@
     <span>Total hang time</span>
     <span><strong id="totalHang">—</strong></span>
   </div>
-  <button class="btn-again" onclick="handleReset()">Go again</button>
+  <button class="btn-reset" onclick="copyStats()" style="margin-bottom:16px;">Copy</button><button class="btn-again" onclick="handleReset()">Go again</button>
 </div>
 
 <script>
@@ -346,6 +354,9 @@
   // Session log: array of { hung: tenths, rested: tenths|null }
   let sessionLog = [];
   let currentHung = 0;
+    totalHangTime = 0;
+  let totalHangTime = 0;
+  let mode = 'endless';
 
   const CIRC = 2 * Math.PI * 155; // 974.0
 
@@ -363,6 +374,7 @@
   const col2        = document.getElementById('col2');
     const appScreen   = document.getElementById('appScreen');
   const summaryScreen = document.getElementById('summaryScreen');
+  const landingScreen = document.getElementById('landingScreen');
 
   // ── Formatting ─────────────────────────────────────────────
   // Takes tenths, returns {h, m, s, t} as zero-padded strings
@@ -425,6 +437,7 @@
     elapsed = 0;
     sessionLog = [];
     currentHung = 0;
+    totalHangTime = 0;
     phaseLabel.className = 'phase-label countdown';
     phaseLabel.textContent = 'Get ready';
     setCountdown(100, 'countdown');
@@ -470,6 +483,31 @@
     showSummary();
   }
 
+
+  function startMode(selectedMode) {
+    mode = selectedMode;
+    totalHangTime = 0;
+    landingScreen.classList.remove('visible');
+    appScreen.style.display = '';
+    startCountdown();
+  }
+
+  function copyStats() {
+    let text = `Mode: ${mode}\n\n`;
+    let totalHung = 0;
+
+    sessionLog.forEach((rep, i) => {
+      totalHung += rep.hung;
+      text += `${i + 1}. Hung ${fmtSecs(rep.hung)}`;
+      if (rep.rested != null) text += ` | Rested ${fmtSecs(rep.rested)}`;
+      text += '\n';
+    });
+
+    text += `\nTotal hang time: ${fmtSecs(totalHung)}`;
+    navigator.clipboard.writeText(text);
+  }
+
+
   // ── Button handlers ────────────────────────────────────────
   function handleMain() {
     if (state === STATES.IDLE || state === STATES.DONE) {
@@ -480,7 +518,11 @@
       const upTenths   = elapsed;
       const halfTenths = Math.round(upTenths / 2);
       currentHung      = upTenths;
-      if (halfTenths < 100) {
+      totalHangTime += upTenths;
+
+      if (mode === 'endless' && halfTenths < 100) {
+        finishSession(upTenths);
+      } else if (mode === 'sixminute' && totalHangTime >= 3600) {
         finishSession(upTenths);
       } else {
         sessionLog.push({ hung: upTenths, rested: halfTenths });
@@ -498,6 +540,7 @@
     elapsed = 0;
     sessionLog = [];
     currentHung = 0;
+    totalHangTime = 0;
     phaseLabel.className = 'phase-label';
     phaseLabel.textContent = 'Ready';
     setCountdown(0, 'idle');
@@ -510,6 +553,8 @@
     setRing(0, '');
     appScreen.style.display = '';
     summaryScreen.classList.remove('visible');
+    landingScreen.classList.add('visible');
+    appScreen.style.display = 'none';
   }
 
   // ── Summary ────────────────────────────────────────────────
