@@ -490,7 +490,8 @@
   }
 
   function copyStats() {
-    let text = `Mode: ${mode}\n\n`;
+    const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    let text = `${today}\nMode: ${mode}\n\n`;
     let totalHung = 0;
 
     sessionLog.forEach((rep, i) => {
