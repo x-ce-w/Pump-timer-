@@ -353,7 +353,6 @@
   // Session log: array of { hung: tenths, rested: tenths|null }
   let sessionLog = [];
   let currentHung = 0;
-    totalHangTime = 0;
   let totalHangTime = 0;
   let mode = 'endless';
 
@@ -370,8 +369,7 @@
     const segM        = document.getElementById('segM');
   const segS        = document.getElementById('segS');
   const col1        = document.getElementById('col1');
-  const col2        = document.getElementById('col2');
-    const appScreen   = document.getElementById('appScreen');
+  const appScreen   = document.getElementById('appScreen');
   const summaryScreen = document.getElementById('summaryScreen');
   const landingScreen = document.getElementById('landingScreen');
 
@@ -542,10 +540,9 @@
     totalHangTime = 0;
     phaseLabel.className = 'phase-label';
     phaseLabel.textContent = 'Ready';
-    setCountdown(0, 'idle');
     segM.textContent = '00'; segS.textContent = '00';
     [segM,segS].forEach(el => el.className = 'time-seg idle');
-    [col1,col2].forEach(el => el.className = 'time-colon idle');
+    [col1].forEach(el => el.className = 'time-colon idle');
     
     mainBtn.className = 'btn-main btn-start';
     mainBtn.textContent = 'START';
